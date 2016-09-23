@@ -32,8 +32,32 @@ touch /tmp/vfs_mounted
 
 if [ ! -f "$BUILDDIR/pkgs_installed" ]; then
 echo "Installing packages"
-chroot $BUILDDIR /bin/bash -c "cat /etc/*-release && apt -yyq update && apt -yyq upgrade && apt -yyq install openjdk-7-jdk git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev libxml2-utils xsltproc unzip || true"
-#chroot $BUILDDIR /bin/bash -c "curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/bin/repo && chmod +x /usr/bin/repo"
+chroot $BUILDDIR /bin/bash -c "apt -yyq update \
+	&& apt -yyq upgrade \
+	&& apt -yyq install \
+       	openjdk-7-jdk \
+	git-core \
+	gnupg \
+	flex \
+	bison \
+	gperf \
+	build-essential \
+	zip \
+	curl \
+	zlib1g-dev \
+	gcc-multilib \
+	g++-multilib \
+	libc6-dev-i386 \
+	lib32ncurses5-dev \
+	x11proto-core-dev \
+	libx11-dev \
+	lib32z-dev \
+	ccache \
+	libgl1-mesa-dev \
+	libxml2-utils \
+	xsltproc \
+	unzip\
+       	|| true"
 fi
 touch $BUILDDIR/pkgs_installed
 
@@ -79,8 +103,34 @@ fi
 
 echo "MY TWEAKS BEGIN HERE"
 echo "==============================================="
+
+echo "Remove unneeded applications from build"
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/Browser $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/Calculator $BUILDDIR/opt || true
+#mv $BUILDDIR/home/$BUILDUSER/packages/apps/ExactCalculator $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/Calendar $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/DeskClock $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/Contacts $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/ContactsCommon $BUILDDIR/opt || true
+#mv $BUILDDIR/home/$BUILDUSER/packages/apps/Email $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/Music $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/QuickSearchBox $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/Phone $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/apps/PhoneCommon $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/inputmethods/OpenWnn $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/services/Mms $BUILDDIR/opt || true
+mv $BUILDDIR/home/$BUILDUSER/packages/services/Telephony $BUILDDIR/opt || true
+
+
+
 echo "==============================================="
 echo "MY TWEAKS END HERE"
 
 echo "Starting AOSP build"
 chroot $BUILDDIR /bin/bash -c "su - $BUILDUSER -c 'make clobber && source build/envsetup.sh && lunch $BUILDTYPE && make otapackage'"
+
+#echo "Unmounting VFSs"
+#umount  $BUILDDIR/dev/pts
+#umount  $BUILDDIR/sys
+#umount  $BUILDDIR/proc
+#umount  $BUILDDIR/dev
